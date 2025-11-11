@@ -28,7 +28,7 @@ async function run() {
     let myBillCollection=db.collection("bills");
 
     // Bills API
-    app.post('/recentBills',async(req,res)=>{
+    app.post('/bills',async(req,res)=>{
         let newBill=req.body;
         let result=await myBillCollection.insertOne(newBill);
         res.send(result);
@@ -36,6 +36,23 @@ async function run() {
 
     app.get('/recentBills',async(req,res)=>{
         let result=await myBillCollection.find({}).sort({date:-1}).limit(6).toArray();
+        res.send(result);
+    })
+
+    app.get('/bills',async(req,res)=>{
+        let category=req.query.category;
+        let query={};
+        if(category){
+            query.category=category;
+        }
+        let products=(await myBillCollection.find(query).toArray());
+        res.send(products);
+    })
+
+    app.get('/billsDetails/:id',async(req,res)=>{
+        let id=req.params.id;
+        let query={_id:new ObjectId(id)};
+        let result=await myBillCollection.findOne(query);
         res.send(result);
     })
 
