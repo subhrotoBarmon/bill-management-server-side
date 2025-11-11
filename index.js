@@ -28,9 +28,14 @@ async function run() {
     let myBillCollection=db.collection("bills");
 
     // Bills API
-    app.post('/bills',async(req,res)=>{
+    app.post('/recentBills',async(req,res)=>{
         let newBill=req.body;
         let result=await myBillCollection.insertOne(newBill);
+        res.send(result);
+    })
+
+    app.get('/recentBills',async(req,res)=>{
+        let result=await myBillCollection.find({}).sort({date:-1}).limit(6).toArray();
         res.send(result);
     })
 
