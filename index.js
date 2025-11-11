@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 require('dotenv').config()
 const cors = require('cors');
-const { ServerApiVersion, MongoClient } = require('mongodb');
+const { ServerApiVersion, MongoClient, ObjectId } = require('mongodb');
 const port =process.env.PORT || 3000;
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.i4tewlt.mongodb.net/?appName=Cluster0`;
@@ -26,6 +26,17 @@ async function run() {
     // Database
     let db=client.db("billManagement_db");
     let myBillCollection=db.collection("bills");
+    let myUserCollection=db.collection('addBills');
+    let myPayBillCollection=db.collection('payBills');
+
+        // Add Bills API
+
+    app.post('/addBills',async(req,res)=>{
+       let newUser=req.body;     
+           let result=await myUserCollection.insertOne(newUser);
+           res.send(result);      
+    })
+
 
     // Bills API
     app.post('/bills',async(req,res)=>{
@@ -50,11 +61,34 @@ async function run() {
     })
 
     app.get('/billsDetails/:id',async(req,res)=>{
-        let id=req.params.id;
-        let query={_id:new ObjectId(id)};
-        let result=await myBillCollection.findOne(query);
+       const id = req.params.id;
+       const query = { _id: new ObjectId(id) };
+       const result = await myBillCollection.findOne(query);
+       res.send(result);
+    })
+
+       // My Pay Bill API
+
+    app.get('/myPayBills', async(req,res)=>{
+        // console.log("headers" ,req); 
+        let bids=await myPayBillCollection.find({}).sort({date:-1}).toArray();
+        res.send(bids);
+    })
+
+
+    app.post('/myPayBills',async(req,res)=>{
+        let newBids=req.body;
+        let result=await myPayBillCollection.insertOne(newBids);
         res.send(result);
     })
+
+    app.delete('/bids/:id',async(req,res)=>{
+        let id=req.params.id;
+        let query={_id:new ObjectId(id)};
+        let result=await myPayBillCollection.deleteOne(query);
+        res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
