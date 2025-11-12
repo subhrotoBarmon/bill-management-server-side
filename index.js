@@ -21,7 +21,7 @@ app.use(express.json());
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+    // Connect the client to the server
     await client.connect();
     // Database
     let db=client.db("billManagement_db");
@@ -56,7 +56,7 @@ async function run() {
         if(category){
             query.category=category;
         }
-        let products=(await myBillCollection.find(query).toArray());
+        let products=(await myBillCollection.find(query).sort({amount:-1}).toArray());
         res.send(products);
     })
 
@@ -71,7 +71,10 @@ async function run() {
 
     app.get('/myPayBills', async(req,res)=>{
         // console.log("headers" ,req); 
-        let bids=await myPayBillCollection.find({}).sort({date:-1}).toArray();
+        let email=req.query.email;
+        let query={}
+        query.email=email
+        let bids=await myPayBillCollection.find(query).sort({date:-1}).toArray();
         res.send(bids);
     })
 
@@ -82,12 +85,29 @@ async function run() {
         res.send(result);
     })
 
-    app.delete('/bids/:id',async(req,res)=>{
+    app.delete('/deleteMyPayBill/:id',async(req,res)=>{
         let id=req.params.id;
         let query={_id:new ObjectId(id)};
         let result=await myPayBillCollection.deleteOne(query);
         res.send(result);
     })
+
+    app.put('/updateMyPayBill/:id', async (req, res) => {
+    const id = req.params.id;
+    const updatedData = req.body;
+    const filter = { _id: new ObjectId(id) };
+    const updateData = {
+    $set: {
+      amount: updatedData.amount,
+      address: updatedData.address,
+      phone: updatedData.phone,
+      date: updatedData.date,
+    },
+   };
+   const result = await myPayBillCollection.updateOne(filter, updateData);
+   res.send(result);
+  });
+
 
 
     // Send a ping to confirm a successful connection
